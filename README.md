@@ -1,0 +1,1 @@
+LANZAR DOCKER: docker run -d --name chromadb -p 8000:8000 -v chroma_data:/data chromadb/chroma
