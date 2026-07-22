@@ -95,9 +95,45 @@ Ejemplo:
 
 ```json
 {
-  ...
+    "is_valid_request": true,
+    "generic_response": null,
+    "multi_product_notice": null,
+    "pending_products": [],
+    "filters": {
+        "category": "Vinos",
+        "price_min": null,
+        "price_max": 25,
+        "format": null,
+        "stock": null,
+        "graduation_min": null,
+        "graduation_max": null,
+        "origen": null,
+        "year": null
+    },
+    "attributes": [
+        "afrutado"
+    ],
+    "occasion": "regalo",
+    "recipient": "padre",
+    "semantic_query": "vino afrutado con notas de fruta roja, buena presentación e ideal para regalo",
+    "output_message": "Aquí tienes los vinos que mejor encajan con tu búsqueda:"
 }
 ```
+
+Donde:
+
+| Campo | Descripción |
+|--------|-------------|
+| `is_valid_request` | Indica si el mensaje corresponde realmente a una búsqueda de productos. |
+| `generic_response` | Mensaje devuelto cuando la consulta no tiene intención de búsqueda. |
+| `multi_product_notice` | Texto que informa al usuario de que existen varios productos en la consulta y que se procesarán de forma secuencial. |
+| `pending_products` | Cola de productos pendientes de procesar cuando el usuario realiza una consulta multiproducto. |
+| `filters` | Conjunto de filtros estructurados extraídos del lenguaje natural. |
+| `attributes` | Características descriptivas del producto buscado. |
+| `occasion` | Contexto o motivo de la compra. |
+| `recipient` | Destinatario del producto, si se menciona. |
+| `semantic_query` | Descripción optimizada que posteriormente se convertirá en un embedding para realizar la búsqueda semántica en ChromaDB. |
+| `output_message` | Mensaje que el backend utilizará como introducción a los resultados mostrados al usuario. |
 
 ---
 
