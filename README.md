@@ -15,6 +15,7 @@ El objetivo del proyecto es permitir que un usuario consulte un catálogo utiliz
 
 # Arquitectura
 
+```text
 Usuario
       │
       ▼
@@ -59,6 +60,7 @@ Solicitar confirmación al usuario
         ▼
 Nueva consulta utilizando el
 siguiente elemento de pending_products
+```
 
 ---
 
