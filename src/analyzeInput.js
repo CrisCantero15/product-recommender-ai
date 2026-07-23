@@ -7,7 +7,7 @@ const agent = new Agent({
     model: "gpt-5.6",
 });
 
-export async function analyzeMessage(message) {
+export async function analyzeMessage(message, sessionId, session) {
 
     const prompt = `Eres un sistema de análisis de intenciones para un buscador de productos HORECA (hostelería, restauración y catering).
                     Tu única tarea es transformar el mensaje en lenguaje natural del usuario en un objeto JSON estructurado. NO debes buscar productos, ni añadir explicaciones fuera del JSON. Devuelve ÚNICAMENTE el JSON, sin texto adicional, sin markdown, sin backticks.
@@ -158,18 +158,36 @@ export async function analyzeMessage(message) {
                     `;
 
     const start = performance.now();
-    const result = await run(agent, prompt);
-    const latency = performance.now() - start;
+    let result;
 
     try {
-        const data = JSON.parse(result.finalOutput.trim());
+
+        result = await run(agent, prompt, { session });
+
+    } catch (err) {
+
+        console.error(`[session:${sessionId}] Error al ejecutar el agente:`, err);
+        return null;
+    
+    } finally {
+
+        const latency = performance.now() - start;
+        console.log(`[session:${sessionId}] Latencia de respuesta del LLM: ${latency.toFixed(0)}ms`);
+    
+    }
+
+    try {
+
+        const data = JSON.parse(result.finalOutput?.trim() ?? "");
 
         // Corte de flujo: si no es una petición real, se devuelve aquí
         if (!data.is_valid_request) {
+
             return {
                 isValidRequest: false,
                 message: data.generic_response ?? "¿Podrías decirme qué producto buscas?"
             };
+
         }
 
         return {
@@ -186,14 +204,8 @@ export async function analyzeMessage(message) {
         };
 
     } catch (err) {
-
-        console.error("Error parseando la respuesta del LLM: ", err, result.finalOutput);
+        console.error(`[session:${sessionId}] Error parseando la respuesta del LLM:`, err, result.finalOutput);
         return null;
-
-    } finally {
-
-        console.log(`Latencia de respuesta del LLM: ${latency.toFixed(0)}ms`);
-    
     }
 
 }

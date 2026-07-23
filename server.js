@@ -7,36 +7,56 @@ import "dotenv/config";
 const app = express();
 const PORT = process.env.SERVER_PORT || 3000;
 
-// Middleware para parsear JSON en el body de las peticiones
 app.use(express.json());
 
-// GET con parámetro en la URL
-app.get('/api/chat', (req, res) => {
-    
+app.post('/api/chat', async (req, res) => {
+
     const { sessionId, message } = req.body;
 
-    // !TODO: Validar el mensaje del usuario
-
-    // Validar el ID de sesión del usuario
-    const session = getOrCreateSession(sessionId);
-
-    const response = await runRecommendationPipeline(session, message);
-
-    if (response && response.products.length > 0) {
-        
-        res.json({ 
-            status: true,
-            message: response.message,
-            products: response.products,
-        });
-
-    } else {
-
-        res.json({
+    // Validación del sessionId (obligatorio, ver sessionStore.js)
+    if (!sessionId || typeof sessionId !== "string") {
+        return res.status(400).json({
             status: false,
-            message: response.message
+            message: "El campo 'sessionId' es obligatorio y debe ser un string."
+        });
+    }
+
+    // Validación básica del mensaje del usuario
+    if (!message || typeof message !== "string" || !message.trim()) {
+        return res.status(400).json({
+            status: false,
+            message: "El campo 'message' es obligatorio y debe ser un texto no vacío."
+        });
+    }
+
+    try {
+        const session = getOrCreateSession(sessionId);
+
+        const response = await runRecommendationPipeline(sessionId, session, message);
+
+        if (response && response.products?.length > 0) {
+            return res.status(200).json({
+                status: true,
+                sessionId,
+                message: response.message,
+                pendingProducts: response.pendingProducts,
+                products: response.products
+            });
+        }
+
+        return res.status(200).json({
+            status: false,
+            sessionId,
+            message: response.message,
+            pendingProducts: response.pendingProducts
         });
 
+    } catch (error) {
+        console.error(`[session:${sessionId}] Error inesperado en /api/chat:`, error);
+        return res.status(500).json({
+            status: false,
+            message: "Ha ocurrido un error inesperado procesando tu solicitud."
+        });
     }
 
 });
